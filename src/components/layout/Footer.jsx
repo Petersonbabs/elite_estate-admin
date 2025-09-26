@@ -41,7 +41,7 @@ const Footer = () => {
             </li>
             <li>
               <Link to="/signup" className="text-gray-300 hover:text-[#ec9a4e] transition-colors">
-                Join Network
+                Join Forum
               </Link>
             </li>
           </ul>
@@ -88,14 +88,14 @@ const Footer = () => {
             </li>
             <li className="flex items-center">
               <MailIcon size={18} className="mr-2 text-[#ec9a4e]" />
-              <span className="text-gray-300">contact@frnnetwork.com</span>
+              <span className="text-gray-300">contact@frnforum.com</span>
             </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-gray-700 mt-12 pt-8 text-sm text-gray-400 flex flex-col md:flex-row justify-between items-center">
         <p>
-          &copy; {new Date().getFullYear()} Female Realtors Network. All
+          &copy; {new Date().getFullYear()} Female Realtors Forum. All
           rights reserved.
         </p>
         <div className="flex space-x-6 mt-4 md:mt-0">

@@ -71,7 +71,7 @@ const AddPropertyModal = ({ isOpen, onClose, onSubmit }) => {
                             Add New Property
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            Fill in the details below to add a new property to the network.
+                            Fill in the details below to add a new property to the forum.
                         </p>
 
                         <form onSubmit={handleSubmit} className="space-y-4">

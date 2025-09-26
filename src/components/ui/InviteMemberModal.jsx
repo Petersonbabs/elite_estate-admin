@@ -46,7 +46,7 @@ const InviteMemberModal = ({
                             Invite a New Member
                         </h2>
                         <p className="text-gray-600 mb-6">
-                            Share your unique referral link and grow your network in the Female Realtors Network.
+                            Share your unique referral link and grow your network in the Female Realtors Forum.
                         </p>
 
                         {/* Referral link box */}

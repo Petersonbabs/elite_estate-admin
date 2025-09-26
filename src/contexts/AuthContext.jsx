@@ -6,7 +6,7 @@ export const authContext = createContext()
 
 const AuthProvider = ({ children }) => {
     const [isAuth, setIsAuth] = useState(localStorage.getItem("token") && localStorage.getItem("userid") || null)
-    const [isAdminAuth, setIsAdminAuth] = useState(localStorage.getItem("token") || null)
+    const [isAdminAuth, setIsAdminAuth] = useState(localStorage.getItem("token") && localStorage.getItem("adminid") || null)
     const [loggingOut, setLoggingOut] = useState(false)
 
     const logout = () => {

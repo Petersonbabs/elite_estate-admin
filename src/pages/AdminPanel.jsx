@@ -8,16 +8,19 @@ import PageLoader from '../components/ui/PageLoader';
 import AdminStatsCards from '../components/ui/AdminStatsCards';
 import { useUser } from '../contexts/UserContext';
 import AdminProperties from '../components/ui/AdminProperties';
+import { useNavigate } from 'react-router-dom';
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('members');
   const { loadingUsers, getAllUsers, globalStats, users: members, usersPagination: pagination } = useUser()
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [properties, setProperties] = useState([]);
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchUsers = () => {
       const adminid = localStorage.getItem("adminid")
-      if (!adminid) {
+      const token = localStorage.getItem("token")
+      if (!adminid || !token) {
         navigate("/login")
         return
       }
@@ -57,7 +60,7 @@ const AdminPanel = () => {
         <div className="py-4 px-2">
           <h2 className="text-xl font-bold">Admin Panel</h2>
           <p className="text-sm text-gray-300 mt-1">
-            Female Realtors Network
+            Female Realtors Forum
           </p>
         </div>
         <nav className="mt-6 flex-1">
@@ -77,7 +80,7 @@ const AdminPanel = () => {
             </div>
             <div>
               <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-gray-300">admin@frnnetwork.com</p>
+              <p className="text-xs text-gray-300">admin@frnforum.com</p>
             </div>
           </div>
         </div>
@@ -324,13 +327,13 @@ const AdminPanel = () => {
                     <label className="block text-gray-700 mb-2">
                       Site Name
                     </label>
-                    <input type="text" value="Female Realtors Network" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ec9a4e] focus:border-transparent" />
+                    <input type="text" value="Female Realtors Forum" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ec9a4e] focus:border-transparent" />
                   </div>
                   <div>
                     <label className="block text-gray-700 mb-2">
                       Contact Email
                     </label>
-                    <input type="email" value="contact@frnnetwork.com" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ec9a4e] focus:border-transparent" />
+                    <input type="email" value="contact@frnforum.com" className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#ec9a4e] focus:border-transparent" />
                   </div>
                   <div className="flex items-center">
                     <input type="checkbox" id="maintenanceMode" className="h-4 w-4 text-[#ec9a4e] focus:ring-[#ec9a4e] border-gray-300 rounded" />

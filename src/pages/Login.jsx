@@ -9,11 +9,10 @@ import axiosInstance from '../lib/axios';
 import { toast } from 'sonner';
 
 const LoginPage = () => {
-  const { checkAuth, checkAdminAuth } = useContext(authContext);
+  const { checkAdminAuth } = useContext(authContext);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState('user');
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -44,23 +43,16 @@ const LoginPage = () => {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      const endpoint = activeTab === 'admin' ? '/admin/login' : '/user/login';
+      const endpoint = '/admin/login'
       const response = await axiosInstance.post(endpoint, formData);
       const data = response.data;
 
       if (response.status === 200) {
         toast.success('Login successful');
         localStorage.setItem('token', data.token);
-        localStorage.setItem(activeTab == "admin" ? "adminid" : 'userid', data.doesUserEmailExist._id);
-      }
-      if (activeTab == "admin") {
-        checkAdminAuth()
-        localStorage.removeItem("userid")
-        navigate('/admin');
-      } else {
-        localStorage.removeItem("adminid")
-        checkAuth();
+        localStorage.setItem("adminid", data.doesUserEmailExist._id);
         navigate('/dashboard');
+        checkAdminAuth()
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to login');
@@ -82,33 +74,13 @@ const LoginPage = () => {
           <AnimatedSection>
             <div className="text-center mb-10">
               <h1 className="text-3xl md:text-4xl font-bold text-[#3f1403] font-playfair mb-4">
-                Login to the Female Realtors Network
+                FRF Admin Portal
               </h1>
               <p className="text-gray-600">Choose how you want to login</p>
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-6 md:p-10">
-              {/* Tabs */}
-              <div className="flex justify-center mb-6">
-                <button
-                  onClick={() => setActiveTab('user')}
-                  className={`px-6 py-2 rounded-l-lg font-medium ${activeTab === 'user'
-                    ? 'bg-[#ec9a4e] text-white'
-                    : 'bg-gray-100 text-gray-700'
-                    }`}
-                >
-                  User Login
-                </button>
-                <button
-                  onClick={() => setActiveTab('admin')}
-                  className={`px-6 py-2 rounded-r-lg font-medium ${activeTab === 'admin'
-                    ? 'bg-[#3f1403] text-white'
-                    : 'bg-gray-100 text-gray-700'
-                    }`}
-                >
-                  Admin Login
-                </button>
-              </div>
+
 
               {/* Form */}
               <motion.form
@@ -195,15 +167,6 @@ const LoginPage = () => {
                     )}
                   </Button>
                 </div>
-
-                {activeTab === 'user' && (
-                  <p className="mt-4">
-                    Are you new here?{' '}
-                    <a href="/signup" className="text-[#3f1403]">
-                      Join Now
-                    </a>
-                  </p>
-                )}
               </motion.form>
             </div>
           </AnimatedSection>

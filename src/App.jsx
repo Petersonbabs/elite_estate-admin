@@ -29,22 +29,21 @@ export function App() {
             <main className="flex-grow">
               <AnimatePresence mode="wait">
                 <Routes>
-                  <Route path="/" element={<LandingPage />} />
-                  <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/" element={<LoginPage />} />
+                  {/* <Route path="/signup" element={<SignUpPage />} /> */}
                   <Route path="/login" element={<LoginPage />} />
-                  <Route element={<ProtectRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                  </Route>
                   <Route element={<ProtectAdmin />}>
-                    {/* <Route element={<AdminDashboard />}> */}
-                      <Route path="/admin" element={<AdminPanel /> } />
-                    {/* </Route> */}
+                    <Route path="/dashboard" element={<AdminPanel />} />
                   </Route>
-                  <Route path="/properties" element={<PropertiesPage />} />
+                  {/* <Route > */}
+                  {/* <Route element={<AdminDashboard />}> */}
+                  {/* <Route path="/admin" element={<AdminPanel />} /> */}
+                  {/* </Route> */}
+                  {/* </Route> */}
+                  {/* <Route path="/properties" element={<PropertiesPage />} /> */}
                 </Routes>
               </AnimatePresence>
             </main>
-            <Footer />
           </PropertyProvider>
         </UserProvider>
       </AuthProvider>
