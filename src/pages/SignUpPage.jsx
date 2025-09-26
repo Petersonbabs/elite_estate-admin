@@ -4,30 +4,42 @@ import { CheckIcon, AlertCircleIcon, SendIcon } from 'lucide-react';
 import Button from '../components/ui/Button';
 import AnimatedSection from '../components/ui/AnimatedSection';
 import { authContext } from '../contexts/AuthContext';
+import axiosInstance from '../lib/axios';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 const SignUpPage = () => {
+  const params = new URLSearchParams(window.location.search)
+  const refCode = params.get("ref")
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     address: '',
-    dob: '',
-    whatsapp: '',
-    phone: '',
+    dateOfBirth: '',
+    whatsAppNumber: '',
+    phoneNumber: '',
     email: '',
-    agreement: false
+    agreement: false,
+    telegramUsername: "",
+    password: "",
+    ref: refCode || ""
   });
   const [errors, setErrors] = useState({});
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [inviteLink, setInviteLink] = useState("");
   const { checkAuth } = useContext(authContext)
+  const navigate = useNavigate()
   const validateForm = () => {
     const newErrors = {};
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
     if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
     if (!formData.address.trim()) newErrors.address = 'Address is required';
-    if (!formData.dob.trim()) newErrors.dob = 'Date of birth is required';
-    if (!formData.whatsapp.trim()) newErrors.whatsapp = 'WhatsApp number is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.dateOfBirth.trim()) newErrors.dateOfBirth = 'Date of birth is required';
+    if (!formData.whatsAppNumber.trim()) newErrors.whatsAppNumber = 'WhatsApp number is required';
+    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
+    if (!formData.telegramUsername.trim()) newErrors.telegramUsername = 'Your Telegram username is required';
+    if (!formData.password.trim()) newErrors.password = 'Password is required';
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -65,23 +77,30 @@ const SignUpPage = () => {
     setIsSubmitting(true);
     // Simulate API call to Google Sheets
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const randomNum = Math.floor(Math.random() * 99999999999)
-      localStorage.setItem("token", randomNum)
+      const response = await axiosInstance.post("/user", formData)
+      const data = response.data
+      if (response.status === 200) {
+        toast.success("Welcome onboard!")
+        setInviteLink(data.inviteLink)
+      }
       checkAuth()
       setIsSubmitted(true);
+
       setFormStep(2);
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast.error(error.response.data.message || error.response.message || "Unable to signup")
     } finally {
       setIsSubmitting(false);
     }
   };
   const handleJoinTelegram = () => {
-    // Simulate joining Telegram group
-    setTimeout(() => {
-      alert('You have successfully joined the FRN Telegram group!');
-    }, 1000);
+    toast.success("Redirecting...")
+    if (!inviteLink) {
+      toast.error("No invitation link was found")
+      return
+    }
+    window.location.href = inviteLink
   };
   const inputClasses = 'w-full px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#ec9a4e] focus:border-transparent transition-all';
   const labelClasses = 'block text-gray-700 mb-1 font-medium';
@@ -130,25 +149,32 @@ const SignUpPage = () => {
                   {errors.address && <p className={errorClasses}>{errors.address}</p>}
                 </div>
                 <div>
-                  <label htmlFor="dob" className={labelClasses}>
+                  <label htmlFor="dateOfBirth" className={labelClasses}>
                     Date of Birth (DD/MM/YYYY)
                   </label>
-                  <input type="date" id="dob" name="dob" value={formData.dob} onChange={handleChange} className={`${inputClasses} ${errors.dob ? 'border-red-500' : ''}`} />
-                  {errors.dob && <p className={errorClasses}>{errors.dob}</p>}
+                  <input type="date" id="dateOfBirth" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} className={`${inputClasses} ${errors.dateOfBirth ? 'border-red-500' : ''}`} />
+                  {errors.dateOfBirth && <p className={errorClasses}>{errors.dateOfBirth}</p>}
                 </div>
                 <div>
-                  <label htmlFor="whatsapp" className={labelClasses}>
+                  <label htmlFor="whatsAppNumber" className={labelClasses}>
                     WhatsApp Number
                   </label>
-                  <input type="tel" id="whatsapp" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className={`${inputClasses} ${errors.whatsapp ? 'border-red-500' : ''}`} placeholder="Your WhatsApp number" />
-                  {errors.whatsapp && <p className={errorClasses}>{errors.whatsapp}</p>}
+                  <input type="tel" id="whatsAppNumber" name="whatsAppNumber" value={formData.whatsAppNumber} onChange={handleChange} className={`${inputClasses} ${errors.whatsAppNumber ? 'border-red-500' : ''}`} placeholder="Your WhatsApp number" />
+                  {errors.whatsAppNumber && <p className={errorClasses}>{errors.whatsAppNumber}</p>}
                 </div>
                 <div>
-                  <label htmlFor="phone" className={labelClasses}>
+                  <label htmlFor="phoneNumber" className={labelClasses}>
                     Phone Number
                   </label>
-                  <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} className={`${inputClasses} ${errors.phone ? 'border-red-500' : ''}`} placeholder="Your phone number" />
-                  {errors.phone && <p className={errorClasses}>{errors.phone}</p>}
+                  <input type="tel" id="phoneNumber" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} className={`${inputClasses} ${errors.phoneNumber ? 'border-red-500' : ''}`} placeholder="Your phone number" />
+                  {errors.phoneNumber && <p className={errorClasses}>{errors.phoneNumber}</p>}
+                </div>
+                <div>
+                  <label htmlFor="telegramUsername" className={labelClasses}>
+                    Telegram username
+                  </label>
+                  <input type="text" id="telegramUsername" name="telegramUsername" value={formData.telegramUsername} onChange={handleChange} className={`${inputClasses} ${errors.telegramUsername ? 'border-red-500' : ''}`} placeholder="Your telegram username" />
+                  {errors.telegramUsername && <p className={errorClasses}>{errors.telegramUsername}</p>}
                 </div>
                 <div>
                   <label htmlFor="email" className={labelClasses}>
@@ -156,6 +182,20 @@ const SignUpPage = () => {
                   </label>
                   <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} className={`${inputClasses} ${errors.email ? 'border-red-500' : ''}`} placeholder="Your email address" />
                   {errors.email && <p className={errorClasses}>{errors.email}</p>}
+                </div>
+                <div>
+                  <label htmlFor="password" className={labelClasses}>
+                    Password
+                  </label>
+                  <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} className={`${inputClasses} ${errors.password ? 'border-red-500' : ''}`} placeholder="********" />
+                  {errors.password && <p className={errorClasses}>{errors.password}</p>}
+                </div>
+                <div>
+                  <label htmlFor="ref" className={labelClasses}>
+                    Referral code
+                  </label>
+                  <input type="text" id="ref" name="ref" value={formData.ref} onChange={handleChange} className={`${inputClasses} ${errors.ref ? 'border-red-500' : ''}`} placeholder="Referal code" />
+                  {errors.ref && <p className={errorClasses}>{errors.ref}</p>}
                 </div>
                 <div className="md:col-span-2 mt-4">
                   <div className="flex items-start">

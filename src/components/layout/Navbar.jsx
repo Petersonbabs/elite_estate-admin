@@ -3,12 +3,12 @@ import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MenuIcon, XIcon } from 'lucide-react';
 import { authContext } from '../../contexts/AuthContext';
+import Button from '../ui/Button';
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuth } = useContext(authContext)
+  const { isAuth, isAdminAuth } = useContext(authContext)
   const location = useLocation();
-  console.log(isAuth)
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10);
@@ -27,12 +27,12 @@ const Navbar = () => {
   const navbarClass = isScrolled ? 'bg-white shadow-md py-3' : 'bg-transparent py-5';
   // Determine text color based on whether the navbar is scrolled
   const textColor = !isScrolled && pathName === "/" ? 'text-white' : 'text-[#3f1403]'
-
+  
   return <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navbarClass}`}>
     <div className="container mx-auto px-4 md:px-6">
       <div className="flex items-center justify-between">
         <Link to="/" className="flex items-center">
-          <img src="/WhatsApp_Image_2025-08-15_at_11.01.52_PM.jpg" alt="FRN Logo" className="h-12 md:h-16" />
+          <img src="/frf_logo.jpeg" alt="FRN Logo" className="h-12 md:h-16" />
         </Link>
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
@@ -40,7 +40,7 @@ const Navbar = () => {
             {link.name}
           </Link>)}
           {
-            !isAuth && (
+            !isAuth && !isAdminAuth &&(
               <Link to="/login" className={`text-sm font-medium tracking-wide transition-colors hover:text-[#ec9a4e] ${location.pathname === "/login" ? 'text-[#ec9a4e]' : textColor}`}>
                 Login
               </Link>
@@ -48,20 +48,24 @@ const Navbar = () => {
           }
           {
             isAuth ? (
-              <Link to="/dashboard" className="px-6 py-2.5 bg-[#3f1403] text-white rounded-md hover:bg-[#ec9a4e] transition-colors duration-300 text-sm font-medium">
+              <Link to="/dashboard" className="px-6 py-2.5 bg-[#3f1403] text-white rounded-md hover:bg-[#5d2007] transition-colors duration-300 text-sm font-medium">
                 Dashboard
               </Link>
+            ) : isAdminAuth ? (
+              <Link to="/admin" className="px-6 py-2.5 bg-[#3f1403] text-white rounded-md hover:bg-[#5d2007] transition-colors duration-300 text-sm font-medium">
+                Admin Panel
+              </Link>
             ) : (
-              <Link to="/signup" className="px-6 py-2.5 bg-[#3f1403] text-white rounded-md hover:bg-[#ec9a4e] transition-colors duration-300 text-sm font-medium">
+              <Link to="/signup" className="px-6 py-2.5 bg-[#3f1403] text-white rounded-md hover:bg-[#5d2007] transition-colors duration-300 text-sm font-medium">
                 Join Now
               </Link>
             )
           }
         </nav>
         {/* Mobile Menu Button */}
-        <button className={`md:hidden ${textColor}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
+        <Button className={`md:hidden ${textColor}`} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} aria-label="Toggle menu">
           {isMobileMenuOpen ? <XIcon size={24} /> : <MenuIcon size={24} />}
-        </button>
+        </Button>
       </div>
       {/* Mobile Navigation - Slide from left */}
       <AnimatePresence>
@@ -90,7 +94,7 @@ const Navbar = () => {
             <div className="flex flex-col h-full">
               <div className="flex justify-between items-center p-6 border-b border-white/10">
                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
-                  <img src="/WhatsApp_Image_2025-08-15_at_11.01.52_PM.jpg" alt="FRN Logo" className="h-12" />
+                  <img src="/frf_logo.jpeg" alt="FRN Logo" className="h-12" />
                 </Link>
                 <button onClick={() => setIsMobileMenuOpen(false)} className="text-white" aria-label="Close menu">
                   <XIcon size={24} />

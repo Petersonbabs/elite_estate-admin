@@ -16,7 +16,7 @@ const Button = ({
 }) => {
   const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-300 focus:outline-none';
   const variantStyles = {
-    primary: 'bg-[#3f1403] text-white hover:bg-[#ec9a4e]',
+    primary: 'bg-[#3f1403] text-white hover:bg-[#5d2007]',
     secondary: 'bg-[#ec9a4e] text-white hover:bg-[#3f1403]',
     outline: 'bg-transparent border-2 border-[#3f1403] text-[#3f1403] hover:bg-[#00000080] hover:text-white hover:border-transparent'
   };
@@ -38,20 +38,20 @@ const Button = ({
   };
   if (to) {
     return <motion.div {...buttonMotion}>
-        <Link to={to} className={buttonStyles}>
-          {children}
-        </Link>
-      </motion.div>;
+      <Link to={to} className={buttonStyles}>
+        {children}
+      </Link>
+    </motion.div>;
   }
   if (href) {
     return <motion.div {...buttonMotion}>
-        <a href={href} className={buttonStyles} target="_blank" rel="noopener noreferrer">
-          {children}
-        </a>
-      </motion.div>;
+      <a href={href} className={buttonStyles} target="_blank" rel="noopener noreferrer">
+        {children}
+      </a>
+    </motion.div>;
   }
   return <motion.button type={type} className={buttonStyles} onClick={onClick} disabled={disabled} {...buttonMotion}>
-      {children}
-    </motion.button>;
+    {children}
+  </motion.button>;
 };
 export default Button;
