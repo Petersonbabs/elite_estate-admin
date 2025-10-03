@@ -1,5 +1,6 @@
 import { createContext, useState } from "react"
 import axiosInstance from "../lib/axios"
+import { useNavigate } from "react-router-dom"
 
 export const authContext = createContext()
 
@@ -8,13 +9,15 @@ const AuthProvider = ({ children }) => {
     const [isAuth, setIsAuth] = useState(localStorage.getItem("token") && localStorage.getItem("userid") || null)
     const [isAdminAuth, setIsAdminAuth] = useState(localStorage.getItem("token") && localStorage.getItem("adminid") || null)
     const [loggingOut, setLoggingOut] = useState(false)
+    const navigate = useNavigate()
 
     const logout = () => {
         setLoggingOut(true)
         setTimeout(() => {
             localStorage.removeItem("token")
-            localStorage.removeItem("userid")
+            localStorage.removeItem("email")
             localStorage.removeItem("adminid")
+            navigate("/login")
             setIsAuth(null)
             setLoggingOut(false)
         }, 1500)

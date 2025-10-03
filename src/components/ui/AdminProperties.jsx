@@ -1,20 +1,26 @@
-import { MapPinIcon, DownloadIcon, CopyIcon, CheckIcon } from 'lucide-react';
+import { MapPinIcon, DownloadIcon, CopyIcon, CheckIcon, Trash2, PenBox } from 'lucide-react';
 import React, { useContext, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SearchIcon, FilterIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import PropertyCard from './PropertyCard';
 import AnimatedSection from './AnimatedSection';
 import { PropertyContext } from '../../contexts/PropertyContext';
+import PageLoader from './PageLoader';
+import DeletePropertyModal from './DeletePropertyModal';
+import EditPropertyModal from './EditPropertyModal';
 
 const propertyTypes = ['All Types', 'Residential', 'Commercial'];
 
 const AdminProperties = () => {
-    const { getProperties, properties, pagination } = useContext(PropertyContext);
+    const { getProperties, properties, pagination, loadingProperties } = useContext(PropertyContext);
     const [selectedLocation, setSelectedLocation] = useState('All Locations');
     const [selectedType, setSelectedType] = useState('All Types');
     const [searchQuery, setSearchQuery] = useState('');
     const [filteredProperties, setFilteredProperties] = useState(properties || []);
     const [currentPage, setCurrentPage] = useState(1);
+    const [isDeletePropertyOpen, setIsDeletePropertyOpen] = useState(false);
+    const [isEditPropertyOpen, setIsEditPropertyOpen] = useState(false);
+    const [selectedPropertyId, setSelectedPropertyId] = useState("");
 
     const locations = React.useMemo(() => {
         if (!properties || properties.length === 0) return ['All Locations'];
@@ -24,6 +30,7 @@ const AdminProperties = () => {
 
     useEffect(() => {
         getProperties(currentPage);
+        console.log(currentPage)
     }, [currentPage]);
 
     useEffect(() => {
@@ -44,7 +51,7 @@ const AdminProperties = () => {
             );
         }
         setFilteredProperties(results);
-    }, [selectedLocation, selectedType, searchQuery, properties]);
+    }, [selectedLocation, selectedType, searchQuery, properties, currentPage]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -108,43 +115,53 @@ const AdminProperties = () => {
                 </AnimatedSection>
 
                 {/* Properties Grid */}
-                <div className="grid gap-6">
-                    <AnimatePresence>
-                        {filteredProperties.length > 0 ? (
-                            filteredProperties.map((property, index) => (
-                                <motion.div
-                                    key={property._id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 20 }}
-                                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                                >
-                                    <PropertyRow
-                                        {...property}
-                                        imageUrl={property.flier}
-                                        title={property.name}
-                                    />
-                                </motion.div>
-                            ))
-                        ) : (
-                            <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12">
-                                <p className="text-gray-500 text-lg">
-                                    No properties match your current filters.
-                                </p>
-                                <button
-                                    onClick={() => {
-                                        setSelectedLocation('All Locations');
-                                        setSelectedType('All Types');
-                                        setSearchQuery('');
-                                    }}
-                                    className="mt-4 text-[#ec9a4e] hover:underline"
-                                >
-                                    Reset filters
-                                </button>
-                            </div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                {
+                    loadingProperties ? (
+                        <PageLoader />
+                    ) : (
+                        <div className="grid gap-6">
+                            <AnimatePresence>
+                                {filteredProperties.length > 0 ? (
+                                    filteredProperties.map((property, index) => (
+                                        <motion.div
+                                            key={property._id}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: 20 }}
+                                            transition={{ duration: 0.3, delay: index * 0.1 }}
+                                        >
+                                            <PropertyRow
+                                                {...property}
+                                                imageUrl={property.flier}
+                                                title={property.name}
+                                                id={property._id}
+                                                setIsDeletePropertyOpen={setIsDeletePropertyOpen}
+                                                setSelectedPropertyId={setSelectedPropertyId}
+                                                setIsEditPropertyOpen={setIsEditPropertyOpen}
+                                            />
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center py-12">
+                                        <p className="text-gray-500 text-lg">
+                                            No properties match your current filters.
+                                        </p>
+                                        <button
+                                            onClick={() => {
+                                                setSelectedLocation('All Locations');
+                                                setSelectedType('All Types');
+                                                setSearchQuery('');
+                                            }}
+                                            className="mt-4 text-[#ec9a4e] hover:underline"
+                                        >
+                                            Reset filters
+                                        </button>
+                                    </div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )
+                }
 
                 {/* Pagination */}
                 {pagination && pagination.totalPages > 1 && (
@@ -189,6 +206,16 @@ const AdminProperties = () => {
                     </div>
                 )}
             </div>
+            <DeletePropertyModal
+                isOpen={isDeletePropertyOpen}
+                onClose={() => setIsDeletePropertyOpen(false)}
+                id={selectedPropertyId}
+            />
+            <EditPropertyModal
+                isOpen={isEditPropertyOpen}
+                onClose={() => setIsEditPropertyOpen(false)}
+                id={selectedPropertyId}
+            />
         </div>
     );
 };
@@ -203,8 +230,14 @@ const PropertyRow = ({
     imageUrl,
     description,
     propertyType,
-    features
+    features,
+    setSelectedPropertyId,
+    setIsDeletePropertyOpen,
+    setIsEditPropertyOpen,
+    setSelectedProperty
 }) => {
+    // const [isDeletePropertyOpen, setIsDeletePropertyOpen] = useState(false);
+
     return (<motion.div className="rounded-lg overflow-hidden h-[100px] shadow-lg bg-white flex " whileHover={{
         y: -5,
         transition: {
@@ -225,14 +258,27 @@ const PropertyRow = ({
                     </h3>
                     <p className="text-[#ec9a4e] min-w-fit font-bold">₦{price.toLocaleString()}</p>
                 </div>
-                <div className="flex items-center text-gray-500 mb-3">
-                    <MapPinIcon size={16} className="mr-1" />
-                    <span className="text-sm">{location}</span>
+                <div className='flex justify-between items-center'>
+                    <div className="flex items-center text-gray-500 mb-3">
+                        <MapPinIcon size={16} className="mr-1" />
+                        <span className="text-sm">{location}</span>
+                    </div>
+                    <div className='flex gap-4 items-center'>
+                        <Trash2 className='text-red-500 w-5 h-5 cursor-pointer' onClick={() => {
+                            setIsDeletePropertyOpen(true)
+                            setSelectedPropertyId(id)
+                        }} />
+                        <PenBox className='text-red-500 w-5 h-5 cursor-pointer' onClick={() => {
+                            setIsEditPropertyOpen(true)
+                            setSelectedPropertyId(id)
+                        }} />
+                    </div>
                 </div>
 
             </div>
 
         </div>
+
     </motion.div>
     )
 }

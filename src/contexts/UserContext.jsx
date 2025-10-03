@@ -33,13 +33,11 @@ const UserProvider = ({ children }) => {
     }
     const getAllUsers = async (adminId, page=1) => {
         setLoadingUsers(true)
-        console.log(adminId)
         try {
             const res = await axiosInstance(`/all/users/${adminId}?page=${page}`)
             setUsers(res.data.data)
             setUsersPagination(res.data.pagination)
             setGlobalStats(res.data.globalStats)
-            console.log(res.data)
         } catch (error) {
             console.log(error)
         } finally {

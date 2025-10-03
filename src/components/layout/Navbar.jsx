@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MenuIcon, XIcon } from 'lucide-react';
+import { Loader2, MenuIcon, XIcon } from 'lucide-react';
 import { authContext } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAuth, isAdminAuth } = useContext(authContext)
+  const { isAuth, isAdminAuth, logout, loggingOut } = useContext(authContext)
   const location = useLocation();
   useEffect(() => {
     const handleScroll = () => {
@@ -91,9 +91,25 @@ const Navbar = () => {
               <div className="p-6 mt-auto border-t border-white/10">
                 {
                   isAdminAuth ? (
-                    <Link to="/dashboard" className="w-full block text-center px-6 py-3 bg-[#ec9a4e] text-white rounded-md hover:bg-white hover:text-[#3f1403] transition-colors duration-300 text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
-                      Dashboard
-                    </Link>
+                    <div className="pt-4 mt-auto border-t border-white/10">
+                      <div className="flex items-center px-4 py-2">
+                        <div className="w-8 h-8 rounded-full bg-[#ec9a4e] flex items-center justify-center mr-3">
+                          <span className="font-semibold text-xs">AS</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-white">Admin User</p>
+                          <p className="text-xs text-gray-300">{localStorage.getItem("email") || ""}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => {
+                        logout()
+                        setTimeout(() => {
+                          setIsMobileMenuOpen(false)
+                        }, 1500)
+                      }} className='mt-4 border w-full py-2 rounded border-red-500 flex items-center justify-center text-white'>
+                        {loggingOut ? <Loader2 className='animate-spin w-5 h-5' /> : "Log out"}
+                      </button>
+                    </div>
                   ) : (
                     <Link to="/login" className="w-full block text-center px-6 py-3 bg-[#ec9a4e] text-white rounded-md hover:bg-white hover:text-[#3f1403] transition-colors duration-300 text-sm font-medium" onClick={() => setIsMobileMenuOpen(false)}>
                       Login

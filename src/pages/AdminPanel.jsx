@@ -1,7 +1,8 @@
 import AddPropertyModal from '../components/ui/AddPropertyModal';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Users as UsersIcon, Home as HomeIcon, PieChart as PieChartIcon, Settings as SettingsIcon, PlusIcon, SearchIcon, UserIcon, EditIcon, TrashIcon, AlertCircleIcon } from 'lucide-react';
+import { Users as UsersIcon, Home as HomeIcon, PieChart as PieChartIcon, Settings as SettingsIcon, PlusIcon, SearchIcon, UserIcon, EditIcon, TrashIcon, AlertCircleIcon, Loader2, X, FolderX } from 'lucide-react';
+import { authContext } from "../contexts/AuthContext"
 import Button from '../components/ui/Button';
 import AnimatedSection from '../components/ui/AnimatedSection';
 import PageLoader from '../components/ui/PageLoader';
@@ -9,12 +10,43 @@ import AdminStatsCards from '../components/ui/AdminStatsCards';
 import { useUser } from '../contexts/UserContext';
 import AdminProperties from '../components/ui/AdminProperties';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../lib/axios';
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState('members');
   const { loadingUsers, getAllUsers, globalStats, users: members, usersPagination: pagination } = useUser()
+  const { logout, loggingOut } = useContext(authContext)
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [properties, setProperties] = useState([]);
+  const [path, setPath] = useState([])
+  const [downlines, setDownlines] = useState([])
+  const [loadingDownlines, setLoadingDownlines] = useState(false)
   const navigate = useNavigate()
+
+  const openReferrals = async (user) => {
+    setPath((prev) => [...prev, user]) // push to breadcrumb trail
+    await fetchDownlines(user._id)
+  }
+
+  const fetchDownlines = async (userId) => {
+    setLoadingDownlines(true)
+    try {
+      const res = await axiosInstance(`/referral/${userId}`)
+      setDownlines(res.data.referrals || [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingDownlines(false)
+    }
+  }
+
+  const handleBreadcrumbClick = async (index) => {
+    const newPath = path.slice(0, index + 1) // keep up to clicked user
+    setPath(newPath)
+    await fetchDownlines(newPath[newPath.length - 1]._id)
+  }
+
+
+
 
   useEffect(() => {
     const fetchUsers = () => {
@@ -33,6 +65,7 @@ const AdminPanel = () => {
 
   const onPageChange = (page) => {
     if (page < 1 || page > pagination.totalPages) return;
+    const adminid = localStorage.getItem("adminid")
     getAllUsers(adminid, page)
   };
 
@@ -53,7 +86,7 @@ const AdminPanel = () => {
     label: 'Settings',
     icon: <SettingsIcon size={20} />
   }];
-  return <div className="min-h-screen bg-gray-50 pt-16">
+  return <div className="min-h-screen bg-gray-50 py-16">
     <div className="flex">
       {/* Sidebar */}
       <div className="hidden md:flex md:w-64 flex-col fixed left-0 top-16 bottom-0 bg-[#3f1403] text-white p-4">
@@ -80,9 +113,12 @@ const AdminPanel = () => {
             </div>
             <div>
               <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-gray-300">admin@frnforum.com</p>
+              <p className="text-xs text-gray-300">{localStorage.getItem("email") || ""}</p>
             </div>
           </div>
+          <button onClick={logout} className='mt-4 border w-full py-2 rounded border-red-500 flex items-center justify-center'>
+            {loggingOut ? <Loader2 className='animate-spin w-5 h-5' /> : "Log out"}
+          </button>
         </div>
       </div>
       {/* Mobile Navbar */}
@@ -95,6 +131,72 @@ const AdminPanel = () => {
       {/* Main Content */}
       <div className="flex-1 md:ml-64 p-6">
         {activeSection === 'members' && <AnimatedSection>
+          {
+            path.length > 0 && (
+              <div className="fixed inset-0 mt-16 bg-black/40 flex justify-end z-50">
+                <div className='h-full w-full'
+                  onClick={() => {
+                    setPath([])
+                    setDownlines([])
+                  }}></div>
+                <div className="bg-white w-[90%] sm:max-w-[400px]  h-full shadow-xl p-4 overflow-y-auto">
+                  <button
+                    className=" hover:text-gray-700 mb-4 flex text-red-500 items-center"
+                    onClick={() => {
+                      setPath([])
+                      setDownlines([])
+                    }}
+                  >
+                    <X />Close
+                  </button>
+
+                  {/* Breadcrumb */}
+                  <div className="flex flex-wrap items-center gap-1 mb-4 text-sm text-gray-600">
+                    {path.map((user, i) => (
+                      <span key={i} className="flex items-center">
+                        <button
+                          className="hover:underline"
+                          onClick={() => handleBreadcrumbClick(i)}
+                        >
+                          {user.firstName} {user.lastName}
+                        </button>
+                        {i < path.length - 1 && <span className="mx-1">›</span>}
+                      </span>
+                    ))}
+                  </div>
+
+                  <h2 className="text-lg font-semibold mb-3">
+                    {path[path.length - 1]?.firstName}’s Downlines
+                  </h2>
+
+                  {loadingDownlines ? (
+                    <PageLoader />
+                  ) : downlines.length === 0 ? (
+                    <div className='flex h-[200px] text-gray-500 justify-center flex-col gap-2 items-center'>
+                      <FolderX className='w-12 h-12'/>
+                      <p>No downlines found</p>
+                    </div>
+                  ) : (
+                    <ul className="space-y-3">
+                      {downlines.map((dl, i) => (
+                        <li
+                          key={i}
+                          className="p-2  rounded border hover:bg-gray-50 cursor-pointer"
+                          onClick={() => openReferrals(dl)}
+                        >
+                          <p className="font-medium">{dl.firstName} {dl.lastName}</p>
+                          <p className="text-xs text-gray-500">{dl.email}</p>
+                          <p className="text-xs text-gray-500">
+                            Referrals: {dl.stats?.totalReferrals || 0}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )
+          }
           <div className="bg-white  rounded-lg shadow-md p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
               <div>
@@ -140,9 +242,9 @@ const AdminPanel = () => {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {members?.reverse()?.map((member, index) => (
+                        {members?.map((member, index) => (
                           <motion.tr
-                            key={member.id}
+                            key={index}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: index * 0.05 }}
@@ -165,7 +267,10 @@ const AdminPanel = () => {
                             >
                               {member.email}
                             </td>
-                            <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500">
+                            <td
+                              className="px-3 cursor-pointer hover:text-[#ec9a4e] underline hover:decoration-0 sm:px-4 py-3 text-xs sm:text-sm text-gray-500"
+                              onClick={() => openReferrals(member)}
+                            >
                               {member.stats.totalReferrals}
                             </td>
                             <td className="px-3 sm:px-4 py-3 text-xs sm:text-sm text-gray-500">
@@ -237,17 +342,7 @@ const AdminPanel = () => {
               </Button>
             </div>
             <AdminProperties />
-            {/* <div className="text-center py-16">
-              <HomeIcon size={48} className="mx-auto text-gray-300 mb-4" />
-              <h3 className="text-xl font-medium text-gray-700 mb-2">
-                Property Management Panel
-              </h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                This section would contain property management features in a
-                real implementation.
-              </p>
-              <Button variant="secondary">View Properties Page</Button>
-            </div> */}
+
           </div>
         </AnimatedSection>}
         {activeSection === 'analytics' && <AnimatedSection>
@@ -375,8 +470,6 @@ const AdminPanel = () => {
       isOpen={isAddPropertyOpen}
       onClose={() => setIsAddPropertyOpen(false)}
       onSubmit={(newProperty) => {
-        // You can call your API here to save property
-        // For now, we update local state
         setProperties((prev) => [...prev, newProperty]);
         console.log("New property submitted:", newProperty);
       }}

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { SendIcon } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -14,6 +14,14 @@ const LoginPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  useEffect(() => {
+    const adminId = localStorage.getItem("adminid")
+    const email = localStorage.getItem("email")
+    const token = localStorage.getItem("token")
+    if (adminId && email && token) {
+      navigate("/dashboard")
+    }
+  }, [])
 
   const validateForm = () => {
     const newErrors = {};
@@ -51,8 +59,9 @@ const LoginPage = () => {
         toast.success('Login successful');
         localStorage.setItem('token', data.token);
         localStorage.setItem("adminid", data.doesUserEmailExist._id);
+        localStorage.setItem("email", data.doesUserEmailExist.email);
         navigate('/dashboard');
-        checkAdminAuth()
+
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to login');

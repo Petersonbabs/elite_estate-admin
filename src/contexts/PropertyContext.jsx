@@ -12,12 +12,13 @@ const PropertyProvider = ({ children }) => {
     const [pagination, setPagination] = useState(null);
     const [loadingProperties, setLoadingProperties] = useState(false)
     const [addingProperty, setAddingProperty] = useState(false)
+    const [detetingProperty, setDeletingProperty] = useState("")
 
     const getTopProperties = async () => {
         setLoadingProperties(true)
         try {
             const res = await axiosInstance("/all/property")
-            setTopProperties(res.data.data.reverse().slice(0, 3))
+            setTopProperties(res.data.data.slice(0, 3))
         } catch (error) {
             console.log(error)
         } finally {
@@ -25,16 +26,29 @@ const PropertyProvider = ({ children }) => {
         }
 
     }
-    const getProperties = async () => {
+    const getProperties = async (page) => {
         setLoadingProperties(true)
         try {
-            const res = await axiosInstance("/all/property")
-            setProperties(res.data.data.reverse())
+            const res = await axiosInstance(`/all/property?page=${page}`)
+            setProperties(res.data.data)
             setPagination(res.data.pagination);
         } catch (error) {
             console.log(error)
         } finally {
             setLoadingProperties(false)
+        }
+
+    }
+
+    const getSingleProperty = async (id) => {
+        // setLoadingProperties(true)
+        try {
+            const res = await axiosInstance(`/single/property/${id}`)
+            return res.data.data
+        } catch (error) {
+            console.log(error)
+        } finally {
+            // setLoadingProperties(false)
         }
 
     }
@@ -67,8 +81,50 @@ const PropertyProvider = ({ children }) => {
         }
     };
 
+    const updateProperty = async (adminId, id, data) => {
+        setAddingProperty(true);
+        try {
+            const formDataToSend = new FormData();
+            Object.keys(data).forEach((key) => {
+                if (data[key] !== null) {
+                    formDataToSend.append(key, data[key]);
+                }
+            });
 
-    const data = { topProperties, addingProperty, properties, pagination, loadingProperties, addProperty, getTopProperties, getProperties }
+            const res = await axiosInstance.put(
+                `/edit/property/${adminId}/${id}`,
+                formDataToSend,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+
+            toast.success(res.data.message)
+            getProperties()
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setAddingProperty(false);
+        }
+    };
+
+    const deleteProperty = async (id) => {
+        setDeletingProperty(id)
+        try {
+            const res = await axiosInstance.delete(`/delete/property/${id}`)
+            getProperties(1)
+            return res
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setDeletingProperty("")
+        }
+    }
+
+
+    const data = { topProperties, detetingProperty, addingProperty, properties, pagination, loadingProperties, addProperty, getTopProperties, getProperties, deleteProperty, getSingleProperty, updateProperty }
     return <PropertyContext.Provider value={data}>{children}</PropertyContext.Provider>
 }
 
